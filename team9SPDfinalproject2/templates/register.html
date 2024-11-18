@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Register - Smart Neighborhood Exchange</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="register-container">
+        <nav class="navbar">
+            <div class="nav-logo">
+                <a href="{{ url_for('home') }}">Smart Neighborhood Exchange</a>
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('home') }}">Home</a>
+                {% if 'user_id' in session %}
+                <div class="dropdown">
+                    <button class="dropbtn">My Account</button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('profile') }}">My Profile</a>
+                        <a href="{{ url_for('add_item') }}">Add Item</a>
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    </div>
+                </div>
+                {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+                {% endif %}
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="login-container">
+                <h2>Create Account</h2>
+                <br>
+
+                {% if error %}
+                <div class="alert alert-error">
+                    {{ error }}
+                </div>
+                {% endif %}
+
+                <form action="{{ url_for('register') }}" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="Name">Full Name:</label>
+                        <input type="text" id="Name" name="Name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Email">Email:</label>
+                        <input type="email" id="Email" name="Email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Username">Username:</label>
+                        <input type="text" id="Username" name="Username" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Password">Password:</label>
+                        <input type="password" id="Password" name="Password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirmPassword"> Confirm Password: </label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Profile_Image">Profile Picture:</label>
+                        <input type="file" id="Profile_Image" name="Profile_Image" accept="image/*">
+                        <div id="image-preview" class="image-preview"></div>
+                        <small class="help-text">Optional - A default profile picture will be used if none is
+                            provided</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Location">Location:</label>
+                        <input type="text" id="Location" name="Location" required>
+                    </div>
+
+                    <button type="submit" class="button">Register</button>
+                    <br>
+                    <p class="login-link" style="margin-top: 30px;">
+                        Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+                    </p>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+
+        <script>
+            // Add image preview functionality
+            document.getElementById('Profile_Image').addEventListener('change', function (e) {
+                const preview = document.getElementById('image-preview');
+                const file = e.target.files[0];
+
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        preview.innerHTML = `
+                            <img src="${e.target.result}"
+                                 alt="Profile Preview"
+                                 class="profile-preview-image"
+                                 style="object-fit: cover;">`;
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.innerHTML = '';
+                }
+            });
+
+            // Confirm if passwords match
+            document.querySelector('form').addEventListener('submit', function (e) {
+                const password = document.getElementById('Password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const passwordError = document.getElementById('password-error');
+
+                if (password !== confirmPassword) {
+                    e.preventDefault(); // Prevent form submission
+                    if (!passwordError) {
+                        const errorDiv = document.createElement('div');
+                        errorDiv.id = 'password-error';
+                        errorDiv.style.color = 'red';
+                        errorDiv.innerText = "Passwords do not match!";
+                        document.getElementById('confirmPassword').parentNode.appendChild(errorDiv);
+                    }
+                } else if (passwordError) {
+                    passwordError.remove(); // Remove error if passwords match
+                }
+            });
+        </script>
+</body>
+
+</html><!-- register.html -->

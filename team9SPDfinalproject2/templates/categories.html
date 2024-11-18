@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Resources</title>
+    <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+    <div class="profile-bar">
+        <div class="profile-picture">
+            <img src="static/profile.jpg" alt="User Profile Picture">
+        </div>
+        <div class="user-info">
+            <div class="user-name">Daphne</div>
+            <div class="user-role">Master's Student</div>
+        </div>
+        <div class="options">
+            <span>⚙️</span>
+            <span>🔔</span>
+            <span>🚪</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Available Resources</h1>
+        
+        <div class="resource-grid">
+            {% for category in categories %}
+            <div class="resource-card">
+                <h2>{{ category }}</h2>
+                <a href="{{ url_for('view_items', category=category) }}" class="view-button">View Items</a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

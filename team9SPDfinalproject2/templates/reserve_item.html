@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reserve Item - {{ item.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Your existing navigation -->
+
+    <div class="container">
+        <div class="item-details">
+            <div class="item-info">
+                <h2>{{ item.title }}</h2>
+
+                <!-- Item Rating -->
+                <div class="rating-section">
+                    <h3>Item Rating</h3>
+                    {% if item.review_count > 0 %}
+                        <div class="stars">
+                            {% for _ in range((item.avg_rating)|int) %}⭐{% endfor %}
+                        </div>
+                        <span class="review-count">({{ item.review_count }} reviews)</span>
+                    {% else %}
+                        <span class="no-reviews">No reviews yet</span>
+                    {% endif %}
+                </div>
+
+                <!-- Owner Rating -->
+                <div class="owner-rating-section">
+                    <h3>Owner Rating: {{ item.owner_name }}</h3>
+                    {% if owner_rating.total_reviews > 0 %}
+                        <div class="stars">
+                            {% for _ in range((owner_rating.avg_rating)|int) %}⭐{% endfor %}
+                        </div>
+                        <span class="review-count">({{ owner_rating.total_reviews }} reviews)</span>
+                    {% else %}
+                        <span class="no-reviews">No owner reviews yet</span>
+                    {% endif %}
+                </div>
+
+                <!-- Item Details -->
+                <p>{{ item.description }}</p>
+                <p><strong>Category:</strong> {{ item.category }}</p>
+                <p><strong>Available:</strong> {{ item.available_from }} to {{ item.available_until }}</p>
+                <p><strong>Maximum Borrow Duration:</strong> {{ item.max_borrow_days }} days</p>
+            </div>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="reviews-section">
+            <h3>Reviews</h3>
+            {% if item_reviews %}
+                {% for review in item_reviews %}
+                    <div class="review-card">
+                        <div class="review-header">
+                            <span class="reviewer-name">{{ review.reviewer_name }}</span>
+                            <div class="stars">
+                                {% for _ in range(review.rating) %}⭐{% endfor %}
+                            </div>
+                            <span class="review-date">{{ review.timestamp }}</span>
+                        </div>
+                        <div class="review-content">
+                            {{ review.comment }}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No reviews yet for this item.</p>
+            {% endif %}
+        </div>
+
+        <!-- Reservation Form -->
+        <div class="reservation-form">
+            <h3>Make a Reservation</h3>
+            {% if error %}
+                <div class="alert alert-error">{{ error }}</div>
+            {% endif %}
+
+            <!-- Your existing reservation form -->
+            <form method="POST">
+                <div class="form-group">
+                    <label for="start_date">Start Date:</label>
+                    <input type="date" id="start_date" name="start_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="end_date">End Date:</label>
+                    <input type="date" id="end_date" name="end_date" required>
+                </div>
+                <button type="submit" class="button">Reserve Item</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

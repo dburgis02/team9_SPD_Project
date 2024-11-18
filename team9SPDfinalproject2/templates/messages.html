@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Messages - Smart Neighborhood Exchange</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-logo">
+            <a href="{{ url_for('home') }}">Smart Neighborhood Exchange</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('browse') }}">Browse</a>
+            <a href="{{ url_for('messages') }}">Messages</a>
+            {% if 'user_id' in session %}
+                <div class="dropdown">
+                    <button class="dropbtn">My Account</button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('profile') }}">My Profile</a>
+                        <a href="{{ url_for('messages') }}">Messages</a>
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="messages-container">
+            <div class="messages-content">
+                <h2>Messages</h2>
+
+                <div class="new-message-section">
+                    <button onclick="toggleUserList()" class="new-message-btn">New Message</button>
+
+                    <div id="user-list" class="user-list" style="display: none">
+                        <div class="user-list-header">
+                            <h3>Select User</h3>
+                            <input type="text"
+                                   id="user-search"
+                                   placeholder="Search users..."
+                                   onkeyup="filterUsers()">
+                        </div>
+
+                        <div class="users-container">
+                            {% for user in all_users %}
+                                {% if user.user_id != session['user_id'] %}
+                                    <a href="{{ url_for('conversation', user_id=user.user_id) }}"
+                                       class="user-item"
+                                       data-username="{{ user.name.lower() }}">
+                                        <div class="user-info">
+                                            <div class="user-avatar">{{ user.name[0] }}</div>
+                                            <span>{{ user.name }}</span>
+                                        </div>
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if conversations %}
+                    <div class="conversations-list">
+                        {% for conv in conversations %}
+                            <a href="{{ url_for('conversation', user_id=conv.user_id) }}"
+                               class="conversation-item {% if conv.unread_count > 0 %}unread{% endif %}">
+                                <div class="conversation-header">
+                                    <div class="user-info">
+                                        <div class="user-avatar">{{ conv.name[0] }}</div>
+                                        <h3>{{ conv.name }}</h3>
+                                    </div>
+                                    {% if conv.last_timestamp %}
+                                        <span class="timestamp">{{ conv.last_timestamp }}</span>
+                                    {% endif %}
+                                </div>
+                                {% if conv.last_message %}
+                                    <p class="last-message">{{ conv.last_message }}</p>
+                                {% endif %}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-conversations">
+                        <p>No conversations yet. Start a new message!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleUserList() {
+            const userList = document.getElementById('user-list');
+            userList.style.display = userList.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function filterUsers() {
+            const searchTerm = document.getElementById('user-search').value.toLowerCase();
+            const userItems = document.querySelectorAll('.user-item');
+
+            userItems.forEach(function(item) {
+                const username = item.getAttribute('data-username');
+                if (username.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse - Smart Neighborhood Exchange</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<style>
+    .search-form {
+        display: flex;
+        flex-direction: column; /* Stack elements vertically */
+        align-items: flex-start; /* Align items to the left */
+        gap: 10px; /* Add spacing between elements */
+    }
+
+    .search-form input[type="text"] {
+        width: 100%; /* Adjust width as needed */
+        padding: 10px;
+        font-size: 1em;
+    }
+
+    .search-form .search-button {
+        padding: 10px 20px;
+        font-size: 1em;
+        cursor: pointer;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+    }
+
+    .search-form .search-button:hover {
+        background-color: #0056b3; /* Darker blue on hover */
+    }
+</style>
+
+    <nav class="navbar">
+        <div class="nav-logo">
+            <a href="{{ url_for('home') }}">Smart Neighborhood Exchange</a>
+        </div>
+
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('browse') }}">Browse</a>
+            <a href="{{ url_for('messages') }}">Messages</a>
+            {% if 'user_id' in session %}
+                <div class="dropdown">
+                    <button class="dropbtn">My Account</button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('profile') }}">My Profile</a>
+                        <a href="{{ url_for('add_item') }}">Add Item</a>
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="browse-layout">
+            <div class="filters-sidebar">
+                <div class="search-container">
+                    <form action="{{ url_for('browse') }}" method="GET" class="search-form">
+                        <input type="text" name="search" placeholder="Search items..." value="{{ search_query if search_query }}">
+                        <button type="submit" class="search-button">Search</button>
+                    </form>
+                </div>
+
+                <h3>Categories</h3>
+                <div class="filter-buttons">
+                    <a href="{{ url_for('browse') }}"
+                       class="category-button {% if not selected_category %}active{% endif %}">
+                        All Items
+                    </a>
+                    {% for category in categories %}
+                        <a href="{{ url_for('browse', category=category) }}"
+                           class="category-button {% if selected_category == category %}active{% endif %}">
+                            {{ category }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="browse-content">
+                {% if search_query %}
+                    <h2>Search Results for "{{ search_query }}"</h2>
+                {% elif selected_category %}
+                    <h2>{{ selected_category }} Items</h2>
+                {% else %}
+                    <h2>All Available Items</h2>
+                {% endif %}
+
+                {% if resources %}
+                    <div class="items-grid">
+                        {% for resource in resources %}
+                            <div class="item-card">
+                                <div class="card-header">
+                                    <h3>{{ resource.title }}</h3>
+                                    <span class="category-badge">{{ resource.category }}</span>
+                                </div>
+
+                                {% if resource.front_image %}
+                                    <div class="item-image">
+                                        <img src="{{ resource.front_image }}" class="item-image" alt="{{ resource.title }}">
+                                    </div>
+                                {% endif %}
+
+                                <div class="rating-display">
+                                    {% if resource.review_count > 0 %}
+                                        <div class="stars">
+                                            {% for _ in range((resource.avg_rating)|int) %}⭐{% endfor %}
+                                        </div>
+                                        <span class="review-count">({{ resource.review_count }} reviews)</span>
+                                    {% else %}
+                                        <span class="no-reviews">No reviews yet</span>
+                                    {% endif %}
+
+                                    <div class="owner-rating">
+                                        Owner Rating:
+                                        {% if resource.owner_review_count > 0 %}
+                                            {% for _ in range((resource.owner_rating)|int) %}⭐{% endfor %}
+                                            ({{ resource.owner_review_count }} reviews)
+                                        {% else %}
+                                            No reviews
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="card-body">
+                                    <p>{{ resource.description }}</p>
+                                    <p><strong>Available:</strong> {{ resource.available_from }} to {{ resource.available_until }}</p>
+                                    <p><strong>Maximum Borrow Duration:</strong> {{ resource.max_borrow_days }} days</p>
+                                    <p><strong>Owner:</strong> {{ resource.owner_name }}</p>
+                                </div>
+
+                                <div class="card-footer">
+                                    <a href="{{ url_for('reserve_item', item_id=resource.resource_id) }}" class="button">Reserve</a>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="no-items">No items available in this category.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

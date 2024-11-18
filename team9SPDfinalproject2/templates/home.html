@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Smart Neighborhood Exchange</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-logo">
+            <a href="{{ url_for('home') }}">Smart Neighborhood Exchange</a>
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            {% if 'user_id' in session %}
+                <a href="{{ url_for('browse') }}">Browse</a>
+                <a href="{{ url_for('messages') }}">Messages</a>
+                <div class="notification-wrapper">
+                    <button id="notification-icon">🔔</button>
+                    <div id="notification-dropdown" class="hidden">
+                    <ul id="notification-list"></ul>
+                    <button id="mark-read">Mark All as Read</button>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <button class="dropbtn">My Account</button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('profile') }}">My Profile</a>
+                        <a href="{{ url_for('add_item') }}">Add Item</a>
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <header class="hero-section">
+        <div class="hero-content">
+            <h1>Welcome to Smart Neighborhood Exchange</h1>
+            <p>Your trusted platform to share resources, connect with neighbors, and foster community collaboration.</p>
+            <a href="{{ url_for('register') }}" class="button hero-button">Join Now</a>
+            <a href="{{ url_for('login') }}" class="button hero-button">Log In</a>
+        </div>
+    </header>
+
+    <main>
+        <!-- About Section -->
+        <section class="about-section">
+            <h2>About Smart Neighborhood Exchange</h2>
+            <p>
+                Smart Neighborhood Exchange is a community-driven platform where neighbors can share tools, rent spaces,
+                and exchange resources to promote sustainability and collaboration. By connecting local residents, we aim
+                to foster stronger relationships, reduce waste, and make everyday life more convenient and cost-effective.
+            </p>
+        </section>
+
+        <!-- Featured Neighborhood Section -->
+        <section class="neighborhood-section">
+            <h2>Featured Neighborhood: Maple Grove Community</h2>
+            <div class="neighborhood-info">
+                <p>
+                    Nestled in the heart of the city, Maple Grove Community is known for its vibrant spirit and close-knit
+                    neighbors. With lush parks, top-rated schools, and exciting local events, Maple Grove is the perfect
+                    place to live, connect, and grow. Join today to discover shared resources and connect with residents!
+                </p>
+                <ul>
+                    <li><strong>Population:</strong> 12,500</li>
+                    <li><strong>Local Amenities:</strong> Community garden, event hall, fitness center</li>
+                    <li><strong>Top Events:</strong> Annual Spring Festival, Weekly Farmer's Market, DIY Workshops</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- How It Works Section -->
+        <section class="how-it-works">
+            <h2>How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <h3>1. Share Items</h3>
+                    <p>
+                        Post your underutilized tools, appliances, or resources on the platform for your neighbors to borrow.
+                    </p>
+                </div>
+                <div class="step">
+                    <h3>2. Reserve Spaces</h3>
+                    <p>
+                        Book local spaces for events, workshops, or meetings. Explore availability and pricing in real-time.
+                    </p>
+                </div>
+                <div class="step">
+                    <h3>3. Build Community</h3>
+                    <p>
+                        Connect with your neighbors through shared experiences, reviews, and meaningful exchanges.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Featured Items Section -->
+        <section class="featured-items">
+            <h2>Featured Items from Your Neighbors</h2>
+            <div class="items-grid">
+                {% for item in featured_items %}
+                    <div class="item-card">
+                        <img src="/{{ item.front_image }}" alt="{{ item.title }}">
+                        <h3>{{ item.title }}</h3>
+                        <p>{{ item.description }}</p>
+                        <a href="{{ url_for('reserve_item', item_id=item.resource_id) }}" class="button">Reserve</a>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Testimonials Section -->
+        <section class="testimonials">
+            <h2>What Our Neighbors Say</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial">
+                    <p>"Smart Neighborhood Exchange has been a game-changer for me. I've saved so much time and money by borrowing tools and renting spaces locally!"</p>
+                    <span>- Alex from Maple Grove</span>
+                </div>
+                <div class="testimonial">
+                    <p>"I love how easy it is to share items I no longer need and connect with my neighbors. Highly recommend!"</p>
+                    <span>- Jamie from Maple Grove</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.getElementById('notification-icon').addEventListener('click', function () {
+            const dropdown = document.getElementById('notification-dropdown');
+            dropdown.style.display = dropdown.style.display === 'none' || !dropdown.style.display ? 'block' : 'none';
+
+            // Fetch notifications
+            fetch('/notifications')
+                .then(response => response.json())
+                .then(data => {
+                    const list = document.getElementById('notification-list');
+                    list.innerHTML = ''; // Clear previous notifications
+                    if (data.length > 0) {
+                        data.forEach(notification => {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = `${notification.content} (${notification.date_created})`;
+                            if (!notification.is_read) {
+                                listItem.style.fontWeight = 'bold'; // Highlight unread
+                            }
+                            list.appendChild(listItem);
+                        });
+                    } else {
+                        list.innerHTML = '<li>No notifications</li>';
+                    }
+                });
+        });
+
+        document.getElementById('mark-read').addEventListener('click', function () {
+            fetch('/notifications/mark-read', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    // Optionally refresh the notifications list
+                    document.getElementById('notification-icon').click();
+                });
+        });
+    </script>
+
+    <footer>
+        <p>© 2024 Smart Neighborhood Exchange. All Rights Reserved.</p>
+    </footer>
+</body>
+</html>

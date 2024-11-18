@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile - Smart Neighborhood Exchange</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-logo">
+            <a href="{{ url_for('home') }}">Smart Neighborhood Exchange</a>
+        </div>
+
+        <div class="nav-links">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('browse') }}">Browse</a>
+            <a href="{{ url_for('messages') }}">Messages</a>
+            {% if 'user_id' in session %}
+                <div class="dropdown">
+                    <button class="dropbtn">My Account</button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('profile') }}">My Profile</a>
+                        <a href="{{ url_for('add_item') }}">Add Item</a>
+                        <a href="{{ url_for('logout') }}">Logout</a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="profile-container">
+            <h2>My Profile</h2>
+
+            {% if user %}
+                <div class="item-details">
+                    <div class="item-info">
+                        <h3>Personal Information</h3>
+                        <p><strong>Name:</strong> {{ user['name'] }}</p>
+                        <p><strong>Email:</strong> {{ user['email'] }}</p>
+                        <p><strong>Location:</strong> {{ user['location'] }}</p>
+
+                        {% if avg_rating %}
+                            <p><strong>Average Rating:</strong>
+                                {% for i in range(avg_rating|round|int) %}⭐{% endfor %}
+                                ({{ avg_rating }})
+                            </p>
+                        {% endif %}
+                        <div class="profile-actions">
+                            <a href="{{ url_for('edit_profile') }}" class="button">Edit Profile</a>
+                            <form action="{{ url_for('delete_profile') }}" method="POST" style="display: inline;">
+                            <button type="submit" class="button delete-button" onclick="return confirm('Are you sure you want to delete your profile? This action cannot be undone.')">Delete Profile</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="profile-image-container">
+                        {% if user['profile_image'] %}
+                            <img src="{{ user['profile_image'] }}" class="profile-image" alt="Profile Picture" width="250px">
+                        {% else %}
+                            <div class="profile-image-placeholder">
+                                {{ user['name'][0].upper() }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="reviews-about-me">
+                    <h3>Reviews About Me</h3>
+                    {% if user_reviews %}
+                        <div class="reviews-grid">
+                            {% for review in user_reviews %}
+                                <div class="review-card">
+                                    <div class="review-header">
+                                        <span class="reviewer-name">{{ review['reviewer_name'] }}</span>
+                                        <span class="rating">
+                                            {% for _ in range(review['rating']) %}⭐{% endfor %}
+                                        </span>
+                                        <span class="review-date">{{ review['timestamp'] }}</span>
+                                    </div>
+                                    <div class="review-content">
+                                        <p>{{ review['comment'] }}</p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No reviews yet.</p>
+                    {% endif %}
+                </div>
+
+                <div class="my-items">
+                    <h3>My Items</h3>
+                    <a href="{{ url_for('add_item') }}" class="button">Add New Item</a>
+
+                    {% if resources %}
+                        <div class="items-grid">
+                            {% for item in resources %}
+                                <div class="card">
+                                    <div class="card-title">
+                                        {{ item['title'] }}
+                                    </div>
+
+                                    <div class="card-content">
+                                        {% if item.front_image %}
+                                            <img src="/{{ item.front_image }}" class="item-image" alt="{{ item['title'] }}">
+                                        {% endif %}
+
+                                        <p>{{ item['description'] }}</p>
+                                        <p><strong>Category:</strong> {{ item['category'] }}</p>
+                                        <p><strong>Status:</strong>
+                                            {% if item['is_available'] %}
+                                                <span class="status-available">Available</span>
+                                            {% else %}
+                                                <span class="status-unavailable">Not Available</span>
+                                            {% endif %}
+                                        </p>
+                                        <p><strong>Posted:</strong> {{ item['date_posted'] }}</p>
+
+                                        <div class="item-actions">
+                                            <a href="{{ url_for('edit_item', item_id=item['resource_id']) }}" class="button">Edit</a>
+                                            <form action="{{ url_for('delete_item', item_id=item['resource_id']) }}" method="POST" class="delete-form">
+                                                <button type="submit" class="button button-danger" onclick="return confirm('Are you sure you want to delete this item?')">Delete</button>
+                                            </form>
+                                        </div>
+
+                                        <!-- Item Reviews Section -->
+                                        <div class="item-reviews">
+                                            <h4>Reviews for this item</h4>
+                                            {% set found_reviews = false %}
+                                            {% for review in item_reviews %}
+                                                {% if review['resource_id'] == item['resource_id'] %}
+                                                    {% set found_reviews = true %}
+                                                    <div class="review-card">
+                                                        <div class="review-header">
+                                                            <span class="reviewer-name">{{ review['reviewer_name'] }}</span>
+                                                            <span class="rating">
+                                                                {% for _ in range(review['rating']) %}⭐{% endfor %}
+                                                            </span>
+                                                        </div>
+                                                        <div class="review-content">
+                                                            <p>{{ review['comment'] }}</p>
+                                                            <span class="review-date">{{ review['timestamp'] }}</span>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if not found_reviews %}
+                                                <p>No reviews yet for this item.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>You haven't added any items yet.</p>
+                    {% endif %}
+                </div>
+
+                {% if reservations %}
+                    <div class="my-reservations">
+                        <h3>My Reservations</h3>
+                        <div class="reservations-grid">
+                            {% for reservation in reservations %}
+                                <div class="card">
+                                    <div class="card-title">
+                                        {{ reservation['title'] }}
+                                        <span class="reservation-status approved">Confirmed</span>
+                                    </div>
+
+                                    <div class="card-content">
+                                        <p>{{ reservation['description'] }}</p>
+                                        <p><strong>Owner:</strong> {{ reservation['owner_name'] }}</p>
+                                        <p><strong>Dates:</strong> {{ reservation['start_date'] }} to {{ reservation['end_date'] }}</p>
+
+                                        <div class="reservation-actions">
+                                            <a href="{{ url_for('edit_reservation', reservation_id=reservation['reservation_id']) }}" class="button">Modify</a>
+                                        </div>
+
+                                        <!-- Review Form -->
+                                        <div class="review-section">
+                                            <h4>Write a Review</h4>
+                                            <form action="{{ url_for('submit_review') }}" method="POST" class="review-form">
+                                                <input type="hidden" name="resource_id" value="{{ reservation['resource_id'] }}">
+                                                <input type="hidden" name="user_id" value="{{ reservation['owner_id'] }}">
+
+                                                <div class="rating">
+                                                    {% for i in range(5, 0, -1) %}
+                                                        <input type="radio" id="star{{ i }}_{{ reservation['resource_id'] }}"
+                                                               name="rating" value="{{ i }}" required>
+                                                        <label for="star{{ i }}_{{ reservation['resource_id'] }}">☆</label>
+                                                    {% endfor %}
+                                                </div>
+
+                                                <textarea name="comment" placeholder="Write your review..." required></textarea>
+
+                                                <div class="review-buttons">
+                                                    <button type="submit" name="review_type" value="item">Review Item</button>
+                                                    <button type="submit" name="review_type" value="user">Review Owner</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="my-reservations">
+                        <h3>My Reservations</h3>
+                        <p>You haven't made any reservations yet.</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <p>User not found.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for message in messages %}
+                    <div class="flash-message">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+</body>
+</html>
